@@ -36,7 +36,7 @@ app.post('/generate-chat-token', (req, res) => {
     );
 
     return res.json({
-      agoraToken: token,  // ✅ Must match your Flutter app's expectation
+      agoraToken: token,
       userId,
       expiresIn: TOKEN_EXPIRATION_SECONDS,
     });
