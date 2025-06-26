@@ -1,46 +1,96 @@
-import express from 'express';
-import cors from 'cors';
-import axios from 'axios';
+// agora-token-server.js
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+/**
+ * This Node.js script provides a simple server-side endpoint to generate
+ * Agora RTM (Real-time Messaging) tokens. This token is required by the
+ * Agora Chat SDK for user authentication.
+ *
+ * It uses the 'agora-access-token' library to build the token.
+ *
+ * IMPORTANT SECURITY NOTE:
+ * The App ID and App Certificate are highly sensitive. NEVER expose them
+ * in client-side code. This script is intended to be run on a secure
+ * backend server.
+ */
 
-// Agora Chat v2 credentials
-const appId = '957dacbfcd6b469ea2961bf8aa045542';
-const appCert = '2fa87c78d3e24a9eba53e342732eda0e';
-const orgName = '411319426';
-const appName = '1568129';
+// Import necessary modules
+const http = require('http'); // For creating a simple HTTP server
+const { RtmTokenBuilder, RtmRole } = require('agora-access-token'); // Agora Token Builder library
 
-const baseUrl = `https://a41.chat.agora.io`;
+// --- Configuration ---
+// It's highly recommended to load these from environment variables
+// rather than hardcoding them in production.
+// Example: process.env.AGORA_APP_ID, process.env.AGORA_APP_CERTIFICATE
+const AGORA_APP_ID = 'YOUR_AGORA_APP_ID'; // Replace with your Agora App ID
+const AGORA_APP_CERTIFICATE = 'YOUR_AGORA_APP_CERTIFICATE'; // Replace with your Agora App Certificate
 
-app.get('/generateChatToken', async (req, res) => {
-  const username = req.query.username;
-  if (!username) return res.status(400).send('Username required');
+const PORT = process.env.PORT || 3000; // Server port, default to 3000
 
-  try {
-    const response = await axios.post(
-      `${baseUrl}/${orgName}/${appName}/token`,
-      {
-        grant_type: 'client_credentials',
-        client_id: `${username}@${appName}`
-      },
-      {
-        auth: {
-          username: appId,
-          password: appCert
-        },
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
+// --- Token Generation Function ---
+function generateRtmToken(userId) {
+    // Current timestamp for token expiration
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    // Token validity in seconds (e.g., 3600 seconds = 1 hour)
+    const expirationTimeInSeconds = 3600;
+    const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+
+    // Build the RTM token
+    const token = RtmTokenBuilder.buildToken(
+        AGORA_APP_ID,
+        AGORA_APP_CERTIFICATE,
+        userId,
+        RtmRole.Rtm_User, // Role for RTM user
+        privilegeExpiredTs // Token expiration timestamp
     );
-    res.json({ token: response.data.access_token });
-  } catch (err) {
-    console.error('Token generation error:', err.response?.data || err.message);
-    res.status(500).json({ error: err.response?.data || err.message });
-  }
+
+    return token;
+}
+
+// --- HTTP Server Setup ---
+const server = http.createServer((req, res) => {
+    // Set CORS headers to allow requests from any origin (for development).
+    // In production, restrict this to your Flutter app's domain.
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    // Handle preflight requests (OPTIONS method) for CORS
+    if (req.method === 'OPTIONS') {
+        res.writeHead(204); // No content
+        res.end();
+        return;
+    }
+
+    // Only allow GET requests for simplicity in this example
+    if (req.method === 'GET') {
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const userId = url.searchParams.get('userId'); // Get userId from query parameter
+
+        if (!userId) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Missing userId parameter' }));
+            return;
+        }
+
+        try {
+            const token = generateRtmToken(userId);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ rtmToken: token }));
+        } catch (error) {
+            console.error('Error generating token:', error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Failed to generate token' }));
+        }
+    } else {
+        // Handle unsupported methods
+        res.writeHead(405, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+    }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Start the server
+server.listen(PORT, () => {
+    console.log(`Agora RTM Token Server listening on port ${PORT}`);
+    console.log(`Example Usage: http://localhost:${PORT}/?userId=YOUR_USER_ID`);
+    console.log(`Remember to replace 'YOUR_AGORA_APP_ID' and 'YOUR_AGORA_APP_CERTIFICATE'`);
+});
