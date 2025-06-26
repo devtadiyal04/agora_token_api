@@ -1,8 +1,7 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
-// --- IMPORTANT CHANGE: Updated from 'agora-access-token' to 'agora-token' ---
-const { RtmTokenBuilder, RtmRole } = require('agora-token');
+// --- Using 'agora-token' as per previous correction ---
+const { RtmTokenBuilder } = require('agora-token');
 
 const app = express();
 const PORT = 3000;
@@ -11,11 +10,13 @@ app.use(cors());
 app.use(express.json());
 
 // Replace these with your Agora Console credentials
-// Note: It's highly recommended to use environment variables for sensitive data
-// e.g., process.env.AGORA_APP_ID, process.env.AGORA_APP_CERTIFICATE
 const APP_ID = "957dacbfcd6b469ea2961bf8aa045542";
 const APP_CERTIFICATE = "2fa87c78d3e24a9eba53e342732eda0e";
 const TOKEN_EXPIRATION_SECONDS = 3600; // 1 hour
+
+// --- Define RTM Role explicitly, as RtmRole might not be directly exported or structured differently ---
+// RtmRole.Rtm_User typically corresponds to the integer value 1 in Agora SDKs.
+const RTM_ROLE_USER = 1;
 
 app.post('/generate-chat-token', (req, res) => {
   const { userId } = req.body;
@@ -28,12 +29,11 @@ app.post('/generate-chat-token', (req, res) => {
   const privilegeExpiredTs = currentTime + TOKEN_EXPIRATION_SECONDS;
 
   try {
-    // --- Using RtmTokenBuilder from the 'agora-token' package ---
     const token = RtmTokenBuilder.buildToken(
       APP_ID,
       APP_CERTIFICATE,
       userId,
-      RtmRole.Rtm_User, // Ensure this role is correct for RTM
+      RTM_ROLE_USER, // --- Changed to direct numeric value ---
       privilegeExpiredTs
     );
 
