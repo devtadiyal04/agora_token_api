@@ -1,46 +1,58 @@
-// index.js
-import express from 'express';
-import cors from 'cors';
+// index.js (Node.js with ES Modules support)
+
 import axios from 'axios';
+import { ChatTokenBuilder } from 'agora-access-token';
 
-const app = express();
-app.use(cors());
+const agoraAppId = '957dacbfcd6b469ea2961bf8aa045542';
+const agoraAppCertificate = '2fa87c78d3e24a9eba53e342732eda0e';
+const chatOrgName = '411319426';
+const chatAppName = '1568129';
+const chatRestApiDomain = 'https://a41.chat.agora.io'; // ✅ Use correct data center
 
-const AGORA_APP_ID = '957dacbfcd6b469ea2961bf8aa045542';
-const AGORA_APP_CERT = '2fa87c78d3e24a9eba53e342732eda0e';
-const ORG_NAME = '411319426';
-const APP_NAME = '1568129';
+const expirationInSeconds = 3600;
 
-const BASE_URL = `https://a41.chat.agora.io`;
+// User info (dynamic in real apps)
+const username = 'user_Beijing_58415';
+const password = 'mysecurepassword'; // Required
+const nickname = 'Dev tadiyal';      // Optional
 
-app.get('/generateChatToken', async (req, res) => {
-  const userId = req.query.userId;
-  if (!userId) return res.status(400).json({ error: 'Missing userId parameter' });
-
-  const basicAuth = Buffer.from(`${AGORA_APP_ID}:${AGORA_APP_CERT}`).toString('base64');
-
+async function registerChatUser() {
   try {
-    const response = await axios.post(
-      `${BASE_URL}/${ORG_NAME}/${APP_NAME}/token`,
-      {
-        grant_type: 'app',
-        user: userId
-      },
-      {
-        headers: {
-          Authorization: `Basic ${basicAuth}`,
-          'Content-Type': 'application/json'
-        }
-      }
+    // Step 1: Generate App Token
+    const appToken = ChatTokenBuilder.buildAppToken(
+      agoraAppId,
+      agoraAppCertificate,
+      expirationInSeconds
     );
 
-    const token = response.data.access_token;
-    res.status(200).json({ chatToken: token });
+    // Step 2: Prepare user data
+    const userData = {
+      username,
+      password,
+      nickname,
+    };
+
+    // Step 3: Call Agora API
+    const chatRegisterURL = `${chatRestApiDomain}/${chatOrgName}/${chatAppName}/users`;
+    const response = await axios.post(chatRegisterURL, userData, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${appToken}`,
+      },
+    });
+
+    const {
+      entities: [{ uuid: userUuid }],
+    } = response.data;
+
+    console.log('✅ User registered. UUID:', userUuid);
   } catch (err) {
-    console.error('Chat token generation error:', err.response?.data || err.message);
-    res.status(500).json({ error: 'Failed to generate chat token' });
+    console.error('❌ Chat user registration failed:', err.response?.data || err.message);
   }
-});
+}
+
+registerChatUser();
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
