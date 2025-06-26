@@ -6,6 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Agora Chat v2 credentials
 const appId = '957dacbfcd6b469ea2961bf8aa045542';
 const appCert = '2fa87c78d3e24a9eba53e342732eda0e';
 const orgName = '411319426';
@@ -22,7 +23,7 @@ app.get('/generateChatToken', async (req, res) => {
       `${baseUrl}/${orgName}/${appName}/token`,
       {
         grant_type: 'client_credentials',
-        user: `${username}@${appName}`
+        client_id: `${username}@${appName}`
       },
       {
         auth: {
