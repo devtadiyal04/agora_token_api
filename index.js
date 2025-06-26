@@ -15,15 +15,19 @@
 
 // Import necessary modules using ES Module syntax
 import http from 'http'; // For creating a simple HTTP server
-import { RtmTokenBuilder, RtmRole } from 'agora-access-token'; // Agora Token Builder library
 import { URL } from 'url'; // Explicitly import URL for Node.js environments where it's not global
+
+// Import the CommonJS module 'agora-access-token' via its default export,
+// then destructure the named exports from the default object.
+import pkg from 'agora-access-token';
+const { RtmTokenBuilder, RtmRole } = pkg;
 
 // --- Configuration ---
 // It's highly recommended to load these from environment variables
 // rather than hardcoding them in production.
 // Example: process.env.AGORA_APP_ID, process.env.AGORA_APP_CERTIFICATE
-const AGORA_APP_ID = 'YOUR_AGORA_APP_ID'; // Replace with your Agora App ID
-const AGORA_APP_CERTIFICATE = 'YOUR_AGORA_APP_CERTIFICATE'; // Replace with your Agora App Certificate
+const AGORA_APP_ID = '957dacbfcd6b469ea2961bf8aa045542'; // Replace with your Agora App ID
+const AGORA_APP_CERTIFICATE = '2fa87c78d3e24a9eba53e342732eda0e'; // Replace with your Agora App Certificate
 
 const PORT = process.env.PORT || 3000; // Server port, default to 3000
 
