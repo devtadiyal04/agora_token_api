@@ -1,5 +1,4 @@
-// agora-chat-token-server.js
-
+// index.js
 import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
@@ -14,12 +13,9 @@ const APP_NAME = '1568129';
 
 const BASE_URL = `https://a41.chat.agora.io`;
 
-// Generate Chat Token (not RTM token)
 app.get('/generateChatToken', async (req, res) => {
   const userId = req.query.userId;
-  if (!userId) {
-    return res.status(400).json({ error: 'Missing userId parameter' });
-  }
+  if (!userId) return res.status(400).json({ error: 'Missing userId parameter' });
 
   const basicAuth = Buffer.from(`${AGORA_APP_ID}:${AGORA_APP_CERT}`).toString('base64');
 
@@ -48,6 +44,5 @@ app.get('/generateChatToken', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Agora Chat Token Server running on port ${PORT}`);
-  console.log(`GET http://localhost:${PORT}/generateChatToken?userId=some_user_id`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
