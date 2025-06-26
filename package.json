@@ -8,6 +8,6 @@
     "start": "node agora-token-server.js"
   },
   "dependencies": {
-    "agora-access-token": "^2.0.0"  // Ensure this line is present
+    "agora-access-token": "^2.0.0"
   }
 }
