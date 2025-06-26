@@ -1,7 +1,8 @@
 // server.js
 const express = require('express');
 const cors = require('cors');
-const { RtmTokenBuilder, RtmRole } = require('agora-access-token');
+// --- IMPORTANT CHANGE: Updated from 'agora-access-token' to 'agora-token' ---
+const { RtmTokenBuilder, RtmRole } = require('agora-token');
 
 const app = express();
 const PORT = 3000;
@@ -10,6 +11,8 @@ app.use(cors());
 app.use(express.json());
 
 // Replace these with your Agora Console credentials
+// Note: It's highly recommended to use environment variables for sensitive data
+// e.g., process.env.AGORA_APP_ID, process.env.AGORA_APP_CERTIFICATE
 const APP_ID = "957dacbfcd6b469ea2961bf8aa045542";
 const APP_CERTIFICATE = "2fa87c78d3e24a9eba53e342732eda0e";
 const TOKEN_EXPIRATION_SECONDS = 3600; // 1 hour
@@ -25,11 +28,12 @@ app.post('/generate-chat-token', (req, res) => {
   const privilegeExpiredTs = currentTime + TOKEN_EXPIRATION_SECONDS;
 
   try {
+    // --- Using RtmTokenBuilder from the 'agora-token' package ---
     const token = RtmTokenBuilder.buildToken(
       APP_ID,
       APP_CERTIFICATE,
       userId,
-      RtmRole.Rtm_User,
+      RtmRole.Rtm_User, // Ensure this role is correct for RTM
       privilegeExpiredTs
     );
 
@@ -40,7 +44,8 @@ app.post('/generate-chat-token', (req, res) => {
     });
   } catch (error) {
     console.error("Token generation failed:", error);
-    return res.status(500).json({ error: 'Token generation failed' });
+    // Provide a more user-friendly error message if possible without exposing sensitive info
+    return res.status(500).json({ error: 'Token generation failed. Check server logs for details.' });
   }
 });
 
