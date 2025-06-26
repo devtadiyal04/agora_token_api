@@ -13,9 +13,10 @@
  * backend server.
  */
 
-// Import necessary modules
-const http = require('http'); // For creating a simple HTTP server
-const { RtmTokenBuilder, RtmRole } = require('agora-access-token'); // Agora Token Builder library
+// Import necessary modules using ES Module syntax
+import http from 'http'; // For creating a simple HTTP server
+import { RtmTokenBuilder, RtmRole } from 'agora-access-token'; // Agora Token Builder library
+import { URL } from 'url'; // Explicitly import URL for Node.js environments where it's not global
 
 // --- Configuration ---
 // It's highly recommended to load these from environment variables
@@ -63,8 +64,9 @@ const server = http.createServer((req, res) => {
 
     // Only allow GET requests for simplicity in this example
     if (req.method === 'GET') {
-        const url = new URL(req.url, `http://${req.headers.host}`);
-        const userId = url.searchParams.get('userId'); // Get userId from query parameter
+        // Construct URL object correctly for incoming request
+        const requestUrl = new URL(req.url, `http://${req.headers.host}`);
+        const userId = requestUrl.searchParams.get('userId'); // Get userId from query parameter
 
         if (!userId) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
