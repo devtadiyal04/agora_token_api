@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { ChatTokenBuilder2 } = require('agora-token'); // ✅ Use ChatTokenBuilder2
+const { ChatTokenBuilder } = require('agora-access-token');
 
 const app = express();
 const PORT = 3000;
@@ -8,10 +8,10 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// Agora Chat credentials (not RTC)
+// Replace with your Agora Console credentials
 const APP_ID = "957dacbfcd6b469ea2961bf8aa045542";
 const APP_CERTIFICATE = "2fa87c78d3e24a9eba53e342732eda0e";
-const EXPIRE_SECONDS = 3600;
+const EXPIRE_TIME_SECONDS = 3600; // 1 hour
 
 app.post('/generate-chat-token', (req, res) => {
   const { userId } = req.body;
@@ -21,24 +21,24 @@ app.post('/generate-chat-token', (req, res) => {
   }
 
   try {
-    const token = ChatTokenBuilder2.buildUserToken(
+    const token = ChatTokenBuilder.buildUserToken(
       APP_ID,
       APP_CERTIFICATE,
       userId,
-      EXPIRE_SECONDS
+      EXPIRE_TIME_SECONDS
     );
 
-    return res.json({
+    res.json({
       token,
       userId,
-      expiresIn: EXPIRE_SECONDS,
+      expiresIn: EXPIRE_TIME_SECONDS
     });
-  } catch (error) {
-    console.error("Token generation failed:", error);
-    return res.status(500).json({ error: 'Token generation failed' });
+  } catch (err) {
+    console.error("❌ Token generation failed:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Agora Chat Token Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Agora Chat Token Server is running at http://localhost:${PORT}`);
 });
