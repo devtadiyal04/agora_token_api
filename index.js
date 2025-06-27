@@ -8,7 +8,6 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// Replace with your Agora Console credentials
 const APP_ID = "957dacbfcd6b469ea2961bf8aa045542";
 const APP_CERTIFICATE = "2fa87c78d3e24a9eba53e342732eda0e";
 const EXPIRE_TIME_SECONDS = 3600; // 1 hour
@@ -27,18 +26,14 @@ app.post('/generate-chat-token', (req, res) => {
       userId,
       EXPIRE_TIME_SECONDS
     );
-
-    res.json({
-      token,
-      userId,
-      expiresIn: EXPIRE_TIME_SECONDS
-    });
+    res.json({ token, userId, expiresIn: EXPIRE_TIME_SECONDS });
   } catch (err) {
-    console.error("❌ Token generation failed:", err);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Token generation error:", err);
+    res.status(500).json({ error: "Token generation failed" });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Agora Chat Token Server is running at http://localhost:${PORT}`);
+  console.log(`✅ Token server running at http://localhost:${PORT}`);
 });
+
