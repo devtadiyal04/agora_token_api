@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { RtmTokenBuilder, RtmRole } = require('agora-access-token');
+const { RtmTokenBuilder, RtmRole } = require('agora-token');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
