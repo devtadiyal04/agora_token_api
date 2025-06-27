@@ -1,22 +1,44 @@
+import express from 'express';
+import cors from 'cors';
+import axios from 'axios';
+
 const app = express();
-app.use(cors(), express.json());
+app.use(cors());
 
-const APP_ID = '957dacbfcd6b469ea2961bf8aa045542';
-const APP_CERT = '2fa87c78d3e24a9eba53e342732eda0e';
-const EXPIRE = 3600;
+const AGORA_APP_ID = '957dacbfcd6b469ea2961bf8aa045542';
+const AGORA_APP_CERT = '2fa87c78d3e24a9eba53e342732eda0e';
+const ORG_NAME = '411319426';
+const APP_NAME = '1568129';
 
-app.post('/generate-chat-token', (req, res) => {
-  const { userId } = req.body;
-  if (!userId) return res.status(400).json({ error: 'userId required' });
+const BASE_URL = `https://a41.chat.agora.io`;
+
+app.get('/generateChatToken', async (req, res) => {
+  const userId = req.query.userId;
+  if (!userId) return res.status(400).json({ error: 'Missing userId parameter' });
+
+  const basicAuth = Buffer.from(`${AGORA_APP_ID}:${AGORA_APP_CERT}`).toString('base64');
+
   try {
-    const token = RtmTokenBuilder.buildToken(
-      APP_ID, APP_CERT, userId, RtmRole.Rtm_User, (Date.now()/1000|0) + EXPIRE
+    const response = await axios.post(
+      `${BASE_URL}/${ORG_NAME}/${APP_NAME}/token`,
+      { grant_type: 'app', user: userId },
+      {
+        headers: {
+          Authorization: `Basic ${basicAuth}`,
+          'Content-Type': 'application/json',
+        },
+      }
     );
-    return res.json({ userId, token, expiresIn: EXPIRE });
+
+    const token = response.data.access_token;
+    res.status(200).json({ chatToken: token });
   } catch (err) {
-    console.error('Token error:', err);
-    return res.status(500).json({ error: err.message });
+    console.error('Chat token generation error:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Failed to generate chat token' });
   }
 });
 
-app.listen(3000, () => console.log('Server running on port 3000'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
