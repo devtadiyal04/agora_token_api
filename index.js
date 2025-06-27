@@ -1,16 +1,17 @@
 const express = require('express');
 const cors = require('cors');
-const { ChatTokenBuilder } = require('agora-access-token');
+const { RtmTokenBuilder, RtmRole } = require('agora-access-token'); // 👈 Correct import
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+// Replace with your Agora Console credentials
+const APP_ID = "957dacbfcd6b469ea2961bf8aa045542";
+const APP_CERTIFICATE = "2fa87c78d3e24a9eba53e342732eda0e";
+const TOKEN_EXPIRATION_SECONDS = 3600;
 
 app.use(cors());
 app.use(express.json());
-
-const APP_ID = "957dacbfcd6b469ea2961bf8aa045542";
-const APP_CERTIFICATE = "2fa87c78d3e24a9eba53e342732eda0e";
-const EXPIRE_TIME_SECONDS = 3600; // 1 hour
 
 app.post('/generate-chat-token', (req, res) => {
   const { userId } = req.body;
@@ -19,21 +20,29 @@ app.post('/generate-chat-token', (req, res) => {
     return res.status(400).json({ error: 'userId is required' });
   }
 
+  const currentTimestamp = Math.floor(Date.now() / 1000);
+  const privilegeExpiredTs = currentTimestamp + TOKEN_EXPIRATION_SECONDS;
+
   try {
-    const token = ChatTokenBuilder.buildUserToken(
+    const token = RtmTokenBuilder.buildToken(
       APP_ID,
       APP_CERTIFICATE,
       userId,
-      EXPIRE_TIME_SECONDS
+      RtmRole.Rtm_User,
+      privilegeExpiredTs
     );
-    res.json({ token, userId, expiresIn: EXPIRE_TIME_SECONDS });
-  } catch (err) {
-    console.error("Token generation error:", err);
-    res.status(500).json({ error: "Token generation failed" });
+
+    return res.json({
+      token,
+      userId,
+      expiresIn: TOKEN_EXPIRATION_SECONDS,
+    });
+  } catch (error) {
+    console.error("❌ Token generation failed:", error);
+    return res.status(500).json({ error: 'Token generation failed. Check server logs for details.' });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Token server running at http://localhost:${PORT}`);
+  console.log(`🚀 Agora Chat Token Server running at http://localhost:${PORT}`);
 });
-
