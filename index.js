@@ -13,11 +13,11 @@ app.use(express.json());
 // Replace with your Agora Chat project credentials
 const APP_ID = '957dacbfcd6b469ea2961bf8aa045542';
 const APP_CERTIFICATE = '2fa87c78d3e24a9eba53e342732eda0e';
-const CLIENT_ID = '<your-client-id>'; // From Agora Console
-const CLIENT_SECRET = '<your-client-secret>'; // From Agora Console
-const ORG_NAME = '<your-org-name>'; // Example: "411319426"
-const APP_NAME = '<your-app-name>'; // Example: "1568129"
-const BASE_URL = `https://a1.easemob.com/${ORG_NAME}/${APP_NAME}`;
+const CLIENT_ID = '007eJxTYJCYWzG3d5fRr/pnTTeXM9ztLKm7fv3zQmP3S5I7f2zvvi2uwGBpap6SmJyUlpxilmRiZpmaaGRpZpiUZpGYaGBiampilPIhJqMhkJFBadZmRkYGVgZGIATxVRhMkxLTDFOSDHRNjUyTdA0N0wx0Ew0sUnWNDE0sUg0sU5KTzVMA6QwrBQ=='; // From Agora Console
+const CLIENT_SECRET = '007eJxTYFjFKrjE44dwlhTD8pl8b7W2L30/wUX7JOPR0P06/AsitM8rMFiamqckJielJaeYJZmYWaYmGlmaGSalWSQmGpiYmpoYTfgQk9EQyMjAMvc6EyMDKwMjAxMDiM/AAAAaiByL'; // From Agora Console
+const ORG_NAME = '411319426'; // Example: "411319426"
+const APP_NAME = '1568129'; // Example: "1568129"
+const BASE_URL = `https://agora-token-api-1.onrender.com/${ORG_NAME}/${APP_NAME}`;
 const TOKEN_EXPIRATION = 3600; // 1 hour
 
 let appTokenCache = {
