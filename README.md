@@ -1,26 +1,12 @@
-# Agora Node Token Server
-This is an example of a simple Node/Express server that generates a token for Agora applications. 
+# Agora Chat Token Server
 
-### Run the server ###
-Install the dependencies
-```node
+This is a simple Node.js + Express server that generates **Agora Chat tokens** (for Agora Chat SDK, formerly RTM). It securely authenticates users from client apps like Flutter, React, or mobile apps using Agora's RESTful API.
+
+---
+
+## 🚀 How to Run
+
+### 1. Install dependencies
+
+```bash
 npm install
-```
-Start the service
-```node
-npm start
-```
-
-### Generate the Token ###
-The endpoint generates a token uisng: `channelName` _(String)_ , the `uid` _(Int)_, and a `role` _('subscriber' or 'publisher')_. 
-`(optional)` Pass `expirationTime` _(integer)_ to represent the token lifetime in seconds.
-
-**endpoint structure** 
-```
-?channelName=&uid=&role=&expireTime=
-```
-
-response:
-``` 
-{"token":" "} 
-```
