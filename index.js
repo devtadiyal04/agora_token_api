@@ -1,40 +1,56 @@
-import express from 'express';
-import cors from 'cors';
-import axios from 'axios';
+const express = require('express');
+const {RtcTokenBuilder, RtcRole} = require('agora-access-token');
+
+const PORT = 8080;
+
+const APP_ID = process.env.APP_ID;
+const APP_CERTIFICATE = process.env.APP_CERTIFICATE;
 
 const app = express();
-app.use(cors());
 
-const appId = '957dacbfcd6b469ea2961bf8aa045542';
-const appCert = '2fa87c78d3e24a9eba53e342732eda0e';
-const orgName = '411319426';
-const appName = '1568129';
+const nocache = (req, resp, next) => {
+  resp.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+  resp.header('Expires', '-1');
+  resp.header('Pragma', 'no-cache');
+  next();
+}
 
-const baseUrl = `https://a41.chat.agora.io`;
-
-app.get('/generateChatToken', async (req, res) => {
-  const username = req.query.username;
-  if (!username) return res.status(400).send('Username required');
-
-  try {
-    const response = await axios.post(
-      `${baseUrl}/${orgName}/${appName}/token`,
-      {
-        grant_type: 'client_credentials',
-        user: username
-      },
-      {
-        auth: {
-          username: appId,
-          password: appCert
-        }
-      }
-    );
-    res.json({ token: response.data.access_token });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+const generateAccessToken = (req, resp) => {
+  // set response header
+  resp.header('Acess-Control-Allow-Origin', '*');
+  // get channel name
+  const channelName = req.query.channelName;
+  if (!channelName) {
+    return resp.status(500).json({ 'error': 'channel is required' });
   }
-});
+  // get uid 
+  let uid = req.query.uid;
+  if(!uid || uid == '') {
+    uid = 0;
+  }
+  // get role
+  let role = RtcRole.SUBSCRIBER;
+  if (req.query.role == 'publisher') {
+    role = RtcRole.PUBLISHER;
+  }
+  // get the expire time
+  let expireTime = req.query.expireTime;
+  if (!expireTime || expireTime == '') {
+    expireTime = 3600;
+  } else {
+    expireTime = parseInt(expireTime, 10);
+  }
+  // calculate privilege expire time
+  const currentTime = Math.floor(Date.now() / 1000);
+  const privilegeExpireTime = currentTime + expireTime;
+  // build the token
+  const token = RtcTokenBuilder.buildTokenWithUid(APP_ID, APP_CERTIFICATE, channelName, uid, role, privilegeExpireTime);
+  // return the token
+  return resp.json({ 'token': token });
+}
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.get('/access_token', nocache, generateAccessToken);
+
+app.listen(PORT, () => {
+  console.log(`Listening on port: ${PORT}`);
+});
